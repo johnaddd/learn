@@ -1,0 +1,5 @@
+我认为开发过程中主要用到的GIT大块
+Git 一些基本操作
+git clone、git push、git add 、git commit、git checkout、git pull
+之后是GIT的分支管理
+ 当你切换分支的时候，Git 会用该分支的最后提交的快照替换你的工作目录的内容， 所以多个分支不需要多个目录
