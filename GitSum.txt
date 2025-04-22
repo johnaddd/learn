@@ -1,5 +1,59 @@
 我认为开发过程中主要用到的GIT大块
-Git 一些基本操作
-git clone、git push、git add 、git commit、git checkout、git pull
-之后是GIT的分支管理
- 当你切换分支的时候，Git 会用该分支的最后提交的快照替换你的工作目录的内容， 所以多个分支不需要多个目录
+1.Git 一些基本操作
+    git clone、git push、git add 、git commit、git checkout、git pull
+2.之后是GIT的分支管理
+  当你切换分支的时候，Git 会用该分支的最后提交的快照替换你的工作目录的内容， 所以多个分支不需要多个目录
+  开发过程中，在本地需要创建分支，完成功能后merge到本地主要分支，然后push到远程分支
+    git branch	列出、创建或删除分支。它不切换分支，只是用于管理分支的存在。	
+    git branch new-branch：创建新分支
+    git branch -d old-branch：删除分支
+
+    git checkout branch-name：切换分支
+    git checkout file.txt：恢复文件到工作区
+    git checkout <commit-hash>：检出特定提交
+
+    git merge branch-name：将指定分支的更改合并到当前分支
+    开发过程中，在本地需要创建分支，完成功能后merge到本地主要分支，然后push到远程分支
+3.查看历史提交。
+    git log - 查看历史提交记录。
+    git blame <file> - 以列表形式查看指定文件的历史修改记录。
+    git checkout：命令用于切换分支或恢复工作目录中的文件到指定的提交。
+        例如，将 file.txt 恢复到 6372cf5 提交时的版本：
+        git checkout 6372cf5c52863a2c8a3311f5d558f632e18ea962 -- file.txt
+    git reset：重置当前分支到指定提交（软重置、混合重置、硬重置）。
+        git reset 命令可以更改当前分支的提交历史，它有三种主要模式：--soft、--mixed 和 --hard
+        --soft：只重置 HEAD 到指定的提交，暂存区和工作目录保持不变。
+        --mixed（默认）：重置 HEAD 到指定的提交，暂存区重置，但工作目录保持不变。
+        --hard：重置 HEAD 到指定的提交，暂存区和工作目录都重置。
+    git revert：创建一个新的提交以撤销指定提交，不改变提交历史。
+        例如，撤销 6372cf5 提交：
+        git revert 6372cf5
+    git reflog：查看历史操作记录，找回丢失的提交。
+4.GitFLow 标准化分支
+    git flow init
+    当开始开发一个新功能时，从 develop 分支创建一个功能分支。
+    git flow feature start feature-name
+    完成开发后，将功能分支合并回 develop 分支，并删除功能分支。
+    git flow feature finish feature-name
+5.便于开发的操作。
+    git add -p：逐块选择要暂存的更改。
+    执行此命令后，Git 会逐块显示文件的更改，你可以选择是否暂存每个块。常用选项包括：
+        y：暂存当前块
+        n：跳过当前块
+        s：拆分当前块
+        e：手动编辑当前块
+        q：退出暂存过程
+    Git Stash：命令允许你临时保存当前工作目录的更改，以便你可以切换到其他分支或处理其他任务。
+        保存当前工作进度：
+        git stash 保存
+        无需提交切换到其他的分支上
+        回到本分支之后
+        git stash pop 保存最近并且删除存档
+    Git Rebase：加入你是功能分支，要想同步主分支上的进度，可以rebase同步至功能分支
+        这个概念https://blog.csdn.net/weixin_42310154/article/details/119004977 这个博客写的很清楚
+        git rebase main 分支变基到当前提交下
+    Git Cherry-Pick：命令允许你选择特定的提交并将其应用到当前分支。它在需要从一个分支移植特定更改到另一个分支时非常有用。
+        把另一个分支的提交6372cf5 提交应用到当前分支：
+        git cherry-pick 6372cf5
+
+
