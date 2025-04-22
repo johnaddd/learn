@@ -114,3 +114,19 @@ git log                          # 查看提交历史
 git diff                         # 查看工作区和暂存区之间的差异
 git diff --cached                # 查看暂存区和最后一次提交之间的差异
 
+
+
+创建分支
+创建新分支并切换到该分支：
+
+git checkout -b <branchname>
+例如：
+
+git checkout -b feature-xyz
+切换分支命令:
+
+git checkout (branchname)
+例如：
+
+git checkout main
+当你切换分支的时候，Git 会用该分支的最后提交的快照替换你的工作目录的内容， 所以多个分支不需要多个目录。
