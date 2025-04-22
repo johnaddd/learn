@@ -114,28 +114,3 @@ git log                          # 查看提交历史
 git diff                         # 查看工作区和暂存区之间的差异
 git diff --cached                # 查看暂存区和最后一次提交之间的差异
 
-
-工作区、暂存区和版本库之间的关系
-1、工作区 -> 暂存区
-
-使用 git add 命令将工作区中的修改添加到暂存区。
-
-git add filename
-2、暂存区 -> 版本库
-
-使用 git commit 命令将暂存区中的修改提交到版本库。
-
-git commit -m "Commit message"
-3、版本库 -> 远程仓库
-
-使用 git push 命令将本地版本库的提交推送到远程仓库。
-
-git push origin branch-name
-4、远程仓库 -> 本地版本库
-
-使用 git pull 或 git fetch 命令从远程仓库获取更新。
-
-git pull origin branch-name
-# 或者
-git fetch origin branch-name
-git merge origin/branch-name
