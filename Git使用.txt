@@ -245,3 +245,34 @@ git stash drop stash@{n}
 清空所有存储：
 
 git stash clear
+
+3、Git Rebase：变基
+git rebase 命令用于将一个分支上的更改移到另一个分支之上。它可以帮助保持提交历史的线性，减少合并时的冲突。
+
+变基当前分支到指定分支：
+
+git rebase <branchname>
+例如，将当前分支变基到 main 分支：
+
+git rebase main
+交互式变基：
+git rebase -i <commit>
+交互式变基允许你在变基过程中编辑、删除或合并提交。常用选项包括：
+
+pick：保留提交
+reword：修改提交信息
+edit：编辑提交
+squash：将当前提交与前一个提交合并
+fixup：将当前提交与前一个提交合并，不保留提交信息
+drop：删除提交
+
+4、Git Cherry-Pick：拣选提交
+git cherry-pick 命令允许你选择特定的提交并将其应用到当前分支。它在需要从一个分支移植特定更改到另一个分支时非常有用。
+
+拣选提交：
+
+git cherry-pick <commit>
+例如，将 abc123 提交应用到当前分支：
+
+git cherry-pick abc123
+处理拣选冲突：如果拣选过程中出现冲突，解决冲突后使用 git cherry-pick --continue 继续拣选。
