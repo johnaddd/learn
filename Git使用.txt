@@ -130,3 +130,53 @@ git checkout (branchname)
 
 git checkout main
 当你切换分支的时候，Git 会用该分支的最后提交的快照替换你的工作目录的内容， 所以多个分支不需要多个目录。
+
+
+1、git checkout：检查出特定版本的文件
+git checkout 命令用于切换分支或恢复工作目录中的文件到指定的提交。
+
+恢复工作目录中的文件到某个提交：
+
+git checkout <commit> -- <filename>
+例如，将 file.txt 恢复到 abc123 提交时的版本：
+
+git checkout abc123 -- file.txt
+切换到特定提交：
+
+git checkout <commit>
+例如：
+
+git checkout abc123
+这种方式切换到特定的提交时，处于分离头指针（detached HEAD）状态。
+
+2、git reset：重置当前分支到特定提交
+git reset 命令可以更改当前分支的提交历史，它有三种主要模式：--soft、--mixed 和 --hard。
+
+--soft：只重置 HEAD 到指定的提交，暂存区和工作目录保持不变。
+
+git reset --soft <commit>
+--mixed（默认）：重置 HEAD 到指定的提交，暂存区重置，但工作目录保持不变。
+
+git reset --mixed <commit>
+--hard：重置 HEAD 到指定的提交，暂存区和工作目录都重置。
+
+git reset --hard <commit>
+例如，将当前分支重置到 abc123 提交：
+
+git reset --hard abc123
+3、git revert：撤销某次提交
+git revert 命令创建一个新的提交，用来撤销指定的提交，它不会改变提交历史，适用于已经推送到远程仓库的提交。
+
+git revert <commit>
+例如，撤销 abc123 提交：
+
+git revert abc123
+4、git reflog：查看历史操作记录
+git reflog 命令记录了所有 HEAD 的移动。即使提交被删除或重置，也可以通过 reflog 找回。
+
+git reflog
+利用 reflog 可以找到之前的提交哈希，从而恢复到特定状态。例如：
+
+git reset --hard HEAD@{3}
+
+
