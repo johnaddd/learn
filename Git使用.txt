@@ -209,3 +209,39 @@ git flow hotfix start hotfix-name
 修复完成后，将修复分支合并回 master 和 develop 分支，并打上版本标签。
 
 git flow hotfix finish hotfix-name
+
+
+
+1、交互式暂存（Interactive Staging）
+git add 命令可以选择性地将文件或文件的一部分添加到暂存区，这在处理复杂更改时非常有用。
+
+使用 git add -p：逐块选择要暂存的更改。
+git add -p
+执行此命令后，Git 会逐块显示文件的更改，你可以选择是否暂存每个块。常用选项包括：
+
+y：暂存当前块
+n：跳过当前块
+s：拆分当前块
+e：手动编辑当前块
+q：退出暂存
+2、Git Stash：临时保存工作进度
+git stash 命令允许你临时保存当前工作目录的更改，以便你可以切换到其他分支或处理其他任务。
+
+保存当前工作进度：
+
+git stash
+查看存储的进度：
+
+git stash list
+应用最近一次存储的进度：
+
+git stash apply
+应用并删除最近一次存储的进度：
+
+git stash pop
+删除特定存储：
+
+git stash drop stash@{n}
+清空所有存储：
+
+git stash clear
