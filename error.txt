@@ -1,0 +1,7 @@
+报错
+git@git.dn.bytzgame.com: Permission denied (publickey,gssapi-keyex,gssapi-with-m
+ic,password).
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
