@@ -1,0 +1,207 @@
+委托是一个引用类型，它定义了一个方法签名，可以用于存储指向该签名的方法。通过委托，你可以调用其他类中的方法。
+委托声明决定了可由该委托引用的方法。委托可指向一个与其具有相同标签的方法。 
+可以实现多播
+
+using System;
+
+delegate int NumberChanger(int n);
+namespace DelegateAppl
+{
+   class TestDelegate
+   {
+      static int num = 10;
+      public static int AddNum(int p)
+      {
+         num += p;
+         return num;
+      }
+
+      public static int MultNum(int q)
+      {
+         num *= q;
+         return num;
+      }
+      public static int getNum()
+      {
+         return num;
+      }
+
+      static void Main(string[] args)
+      {
+         // 创建委托实例
+         NumberChanger nc;
+         NumberChanger nc1 = new NumberChanger(AddNum);
+         NumberChanger nc2 = new NumberChanger(MultNum);
+         nc = nc1;
+         nc += nc2;
+         // 调用多播
+         nc(5);
+         Console.WriteLine("Value of Num: {0}", getNum());
+         Console.ReadKey();
+      }
+   }
+}
+
+委托和事件
+委托常常与事件（Event）一起使用，事件是一种特殊类型的委托，用于发布和订阅机制。
+在 C# 中，事件本质上就是一个封装了委托的类型，它用于响应程序中的某些操作。
+
+public class Button
+{
+    // 定义一个事件
+    public event EventHandler Click;
+
+    // 引发事件的方法
+    public void OnClick()
+    {
+        if (Click != null)
+        {
+            Click(this, EventArgs.Empty);  // 调用事件
+        }
+    }
+}
+
+public class Program
+{
+    public static void Main()
+    {
+        Button button = new Button();
+        
+        // 订阅事件
+        button.Click += Button_Click;
+
+        // 引发事件
+        button.OnClick();  // 输出 "Button clicked!"
+    }
+
+    private static void Button_Click(object sender, EventArgs e)
+    {
+        Console.WriteLine("Button clicked!");
+    }
+}
+
+委托的类型
+C# 提供了几种常见的委托类型：
+
+1、Action
+Action：代表不返回值的方法。可以接受最多 16 个参数。
+
+Action<string> printMessage = Console.WriteLine;
+printMessage("Hello");
+2、Func
+Func：代表有返回值的方法。最多接受 16 个参数，第一个参数是输入参数，最后一个参数是返回值类型。
+
+Func<int, int, int> add = (x, y) => x + y;
+Console.WriteLine(add(3, 4));  // 输出 7
+3、Predicate
+Predicate：代表返回 bool 值的方法，通常用于条件判断。
+
+Predicate<int> isEven = x => x % 2 == 0;
+Console.WriteLine(isEven(4));  // 输出 True
+
+
+
+声明事件（Event）
+在类的内部声明事件，首先必须声明该事件的委托类型。例如：
+
+public delegate void BoilerLogHandler(string status);
+然后，声明事件本身，使用 event 关键字：
+
+// 基于上面的委托定义事件
+public event BoilerLogHandler BoilerEventLog;
+上面的代码定义了一个名为 BoilerLogHandler 的委托和一个名为 BoilerEventLog 的事件，该事件在生成的时候会调用委托。
+
+以下示例展示了如何在 C# 中使用事件：
+
+using System;
+using System.IO;
+
+namespace BoilerEventAppl
+{
+    // Boiler 类
+    class Boiler
+    {
+        public int Temp { get; private set; }
+        public int Pressure { get; private set; }
+
+        public Boiler(int temp, int pressure)
+        {
+            Temp = temp;
+            Pressure = pressure;
+        }
+    }
+
+    // 事件发布器
+    class DelegateBoilerEvent
+    {
+        public delegate void BoilerLogHandler(string status);
+
+        // 基于上面的委托定义事件
+        public event BoilerLogHandler BoilerEventLog;
+
+        public void LogProcess()
+        {
+            string remarks = "O.K.";
+            Boiler boiler = new Boiler(100, 12);
+            int temp = boiler.Temp;
+            int pressure = boiler.Pressure;
+
+            if (temp > 150 || temp < 80 || pressure < 12 || pressure > 15)
+            {
+                remarks = "Need Maintenance";
+            }
+
+            OnBoilerEventLog($"Logging Info:\nTemperature: {temp}\nPressure: {pressure}\nMessage: {remarks}");
+        }
+
+        protected void OnBoilerEventLog(string message)
+        {
+            BoilerEventLog?.Invoke(message);
+        }
+    }
+
+    // 该类保留写入日志文件的条款
+    class BoilerInfoLogger : IDisposable
+    {
+        private readonly StreamWriter _streamWriter;
+
+        public BoilerInfoLogger(string filename)
+        {
+            _streamWriter = new StreamWriter(new FileStream(filename, FileMode.Append, FileAccess.Write));
+        }
+
+        public void Logger(string info)
+        {
+            _streamWriter.WriteLine(info);
+        }
+
+        public void Dispose()
+        {
+            _streamWriter?.Close();
+        }
+    }
+
+    // 事件订阅器
+    public class RecordBoilerInfo
+    {
+        static void Logger(string info)
+        {
+            Console.WriteLine(info);
+        }
+
+        static void Main(string[] args)
+        {
+            using (BoilerInfoLogger fileLogger = new BoilerInfoLogger("e:\\boiler.txt"))
+            {
+                DelegateBoilerEvent boilerEvent = new DelegateBoilerEvent();
+                boilerEvent.BoilerEventLog += Logger;
+                boilerEvent.BoilerEventLog += fileLogger.Logger;
+                boilerEvent.LogProcess();
+            }
+
+            Console.ReadLine();
+        }
+    }
+}
+
+异步委托 稍微看了一下
