@@ -1,0 +1,69 @@
+Unity canvas详解
+Screen Space Overlay（屏幕空间-覆盖）
+屏幕空间-覆盖是根据屏幕分辨率进行渲染，不参考场景中的任何游戏对象或者摄像机，渲染之后将其绘制在其他所有内容之上。
+
+Screen Space Camera（屏幕空间-摄像机）
+屏幕空间-摄像机是将画布设置为摄像机前方视野中的一个平面。
+
+这种模式下，必须通过Render Camera（渲染摄像机）属性来指定摄像机，且只有在被指定的摄像机中，画布才是可见的。
+Plane Distance（平面距离）属性用来指定画布到摄像机的距离，该距离不会影响画布中内容的大小，但是会被距离摄像机更近的其他游戏对象遮挡。如果Plane Distance（平面距离）属性的取值在摄像机Clipping Planes（剪裁平面）属性的取值范围之外，画布仍然是不可见的。
+
+World Space（世界空间）
+世界空间这种渲染模式是将画布变成了Unity空间的一个普通游戏对象来处理。世界空间这种渲染模式的画布经常做游戏对象的名称或者说明上，如NPC头顶的名称，血条。
+
+
+Canvas Scaler
+说一下最常用的UI缩放模式
+Scale With Screen Size
+
+他有三种Screen Match Mode
+
+Match Width or Height 根据真实屏幕的宽高比按指定的 Match 值来缩放 Canvas。
+Reference Resolution UI 的设计尺寸，这个值需要自已定，也是美术做图的依据，一般为 1920 * 1080（16:9，当然现在的刘海屏手机屏大部分是 18:9 或更宽，后面 UI 适配章节详细讲）
+Match 决定 Canvas 按宽高缩放的权重值，当 Match = 0 时，按宽度进行 Canvas 等比缩放；当 Match 值 = 1 时，按高度度进行 Canvas 等比缩放。一般情况下这个值非 0 即 1，不用纠结中间值。
+
+Expand 在屏幕大小上 *“内接”* 画布。以 Canvas 小于 屏幕 为例，放大画布直至宽或高有一边与屏幕重合停止。此模式下为 **Canvas 全部显示在屏幕中** 的前提下 Canvas 的最大缩放值
+
+Shrink 在屏幕大小上 “外切” 画布。以 Canvas 小于 屏幕 为例，放大画布直至宽或高最后一边与屏幕重合停止。此模式下为 Canvas 被裁切，不能完全显示在屏幕中
+
+三种 Screen Match Mode 中，用的最多的是 Match Width or Height
+再次强调，任何缩放模式都不会改变 Canvas 固有设计宽高比
+
+
+
+适配
+
+1.Canvas 渲染模式选择 Screen Space - Camera（屏幕空间- 相机）,指定渲染的UI摄像机。
+2.Canvas Scaler组件的UI Scale Mode选择Scale With Screen Size，并设置Reference Resolution为1280*720，
+  Screen Match Mode选择Match Width or Height，设置Match Width为0.意思完全按照1280*720的宽度来适配。
+  或者Screen Match Mode选择Expand,放大画布直至宽或高有一边与屏幕重合停止。
+
+ 验证了 Match Width or Height 不合适，当出现裁切的时候 只能match 设置为0或者1.这样和Expand模式就一样了 没有省区域
+ 所以还是用Expand模式
+
+3.用safeArea来做刘海屏适配，我做了一个demo。
+
+
+using UnityEngine.UI;
+
+public class UISafeContent : MonoBehaviour
+{
+    void Start()
+    {
+        ApplySafeArea();
+    }
+
+    public void ApplySafeArea()
+    {
+        // 获取安全区域
+        Rect safeArea = Screen.safeArea;
+        Debug.Log($"Safe Area: x,y,width,height = " 
+        + safeArea.x + "," + safeArea.y + "," + safeArea.width + "," + safeArea.height);
+
+        UIUtil.SetStretch(gameObject);
+        var leftElement = transform.Find("Left").GetComponent<LayoutElement>();
+        var rightElement = transform.Find("Right").GetComponent<LayoutElement>();
+        leftElement.preferredWidth = safeArea.x;
+        rightElement.preferredWidth = Screen.width - safeArea.x - safeArea.width;
+    }
+}
