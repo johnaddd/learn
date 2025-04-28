@@ -17,6 +17,12 @@ Renderer's rendering order
     renderqueue > 2500 的物体绝对会在 renderqueue <= 2500 的物体前面，
     即渲染时 renderqueue 大的会挡住 renderqueue 小的。
 
+详细一点的解释：
+    2500是关键值，它是透明跟不透明的分界点。
+    知识点:
+    RenderQueue > 2500的物体绝对会在RenderQueue <= 2500的物体前面，即渲染时RenderQueue大的会挡住RenderQueue小的，不论它的Sorting Layer和Order in Layer怎么设置都是不起作用的。
+    当两个的RenderQueue都在同一侧时，在Sorting Layer高的绝对会在Sorting Layer前面，无视RenderQueue跟Order in Layer，只有在Sorting Layer相同的前提下，Order in Layer高的会在Order in Layer低的前面，无视RenderQueue。当Sorting Layer跟Order in Layer相同时，才看RenderQueue的高低，高的在前面。
+
 
 Background	    1000	
 This render queue is rendered before any others	这个队列通常被最先渲染（比如天空盒）。
