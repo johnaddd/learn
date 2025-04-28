@@ -1,0 +1,46 @@
+Renderer's rendering order
+在Unity中，rendering order 是根据以下参数进行排序：Camera depth > Material type > Sorting layer > Order in layer > Material render queue > Camera order algorithm。
+
+1.Camera depth：值越小越优先渲染，优先渲染可能会被覆盖
+2.Render queue < 2500：
+    按照 Sorting Layer / Order in layer 设置的值，越小越优先
+    无此属性，等同于 Sorting Layer = default，Order in layer = 0 参与排序
+    Render queue 越小越优先
+    Render queue 相等，由近到远排序
+3.Render queue >= 2500
+    按照 Sorting Layer / Order in layer 设置的值，越小越优先
+    无此属性，等同于 Sorting Layer = default，Order in layer = 0 参与排序
+    Render queue 越小越优先
+    Render queue 相等，由远到近排序
+
+    2500是关键值，它是透明和不透明的分界点，因此我们考虑层级的时候要注意：
+    renderqueue > 2500 的物体绝对会在 renderqueue <= 2500 的物体前面，
+    即渲染时 renderqueue 大的会挡住 renderqueue 小的。
+
+
+Background	    1000	
+This render queue is rendered before any others	这个队列通常被最先渲染（比如天空盒）。
+Geometry	    2000	
+Opaque geometry uses this queue	这个默认的渲染队列。它被用于绝大数对象。不透明几何体使用该队列。
+AlphaTest	    2450	
+Alpha tested geometry uses this queue	需要开启透明度测试的物体。Unity5 以后从 Geometry 队列中拆出来，因为在所有不透明物体渲染完之后再渲染会比较高效。
+GeometryLast	2500	
+Last render queue that is considered "opaque"	所有 Geometry 和 AlphaTest 队列的物体渲染完后。
+Transparent	    3000	
+This render queue is rendered after Geometry and AlphaTest,in back-to-front order	所有 Geometry 和 AlphaTest 队列渲染完后，再按照从后往前的顺序进行渲染，任何使用了透明度混合的物体都应该使用该队列（例如玻璃和粒子效果）。
+Overlay	        4000	
+This render queue is meat for overlay effects	该队列用于实现一些叠加效果，适合最后渲染的物体（如镜头光晕）。
+
+
+3D
+    不透明物体&半透明物体（例如草、铁丝网等）依照场景摆放
+    不需要特别设定 rendering order
+    一切交给 z-buffering 机制
+    透明物体或者粒子特效可透过 sorting layer & order in layer 机制调整 rendering order
+    透明物体 shader 通常不会写 z-buffer（ZWrite Off）
+    可 hack inspector 来设定 renderer.sortingLayerID 以及 renderer.sortingOrder
+2D
+    Sprite renderer 使用 sorting layer & order in layer 机制来调整 rendering order，以控制 depth
+UGUI
+    利用 transform hierarchy 来建立 rendering order，根据性能优化可以拆成多个 canvas
+    若采用 Canvas render mode：World Space，想让 UI 与 3D 场景物体的结合，可将 canvas视为 3D 物体去设计场景架构
