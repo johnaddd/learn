@@ -1,0 +1,157 @@
+1.程序编译、执行基础概念
+1.1 AOT(ahead of time)：
+由程序员预先编译成对应平台机器码，如C/C++，不同平台下会编译成不同的机器码，也就是一次编写，多处编译。其优点是运行速度快，不需要运行时程序动态翻译机器码。缺点是编译时间长，每个平台都要编译一次。
+
+1.2 JIT(just in time)
+由程序员预先编译成中间码(如IL(C#),Java字节码(Java)),在程序运行时启动一个虚拟机(CLR,JVM),由该虚拟机将中间码翻译为对应平台机器码，然后执行，也就是一次编译，多处运行。其优点是不用每个平台编译一次，编译时间短。缺点是运行速度比AOT稍慢。
+
+1.3 Interpreter(解释器)
+解释器一般是将代码(如lua)翻译为机器码，与JIT区别在于是否会在内存中存储机器码，JIT会对热点代码进行分析，调用次数多的代码对应的机器码会被保存在内存中，再次执行就不用再翻译了，而解释器相当于口译员，执行一句翻译一句，相同的代码无论执行多少次都会重新翻译为机器码。其优点是：任何平台都没有限制，只要其平台有对应的解释器，灵活性高，可以运行时动态执行代码(如lua可以把代码配置到配置表中执行)。缺点是比JIT更慢。
+
+
+
+1.5 IL,CLR,IL2CPP
+1.5.1 IL(Intermediate Language):
+IL是.NET框架中中间语言（Intermediate Language）的缩写。使用支持.NET框架的编译器可以直接将源程序编译为.exe或.dll文件，但此时编译出来的程序代码并不是CPU能直接执行的机器代码，而是一种中间语言IL（Intermediate Language）代码。
+
+1.5.2 CLR（Common Language Runtime）
+CLR（公共语言运行时），其实就是一个虚拟机，C#程序运行时都会启动它，它负责将IL翻译为对应平台的机器码，内存管理等。
+
+在微软的.Net框架中，任何语言只有能编译成IL后才能被CLR执行，也就是说C#需要一个编译器来编译为IL，还需要有一个CLR来负责翻译IL，Unity选择的是Mono，Mono是另一家公司做的跨平台的开源.Net FrameWork实现，但后面Mono好像很久没维护了，Unity已经把IL2CPP作为其核心了。下图是C#,IL,CLR之间的关系：
+
+
+1.5.3 IL2CPP：
+之前讨论过JIT的一些缺点以及很多平台限制JIT，所以Unity就弄出了IL2CPP来帮助将IL转换为C++代码再编译为机器码，走AOT执行。这样做能大大提高游戏性能。
+
+我们都知道，C++是不带托管内存的，也没有GC，所有内存都需要程序员自己管理，但我们在编写C#的时候是没有显式管理过内存的，所以为了支持C#的自动内存管理，IL2CPP运行时也有一个虚拟机在跑，虚拟机在托管着我们代码中分配的内存。
+
+
+
+
+快速上手
+
+安装HybridCLR
+安装 com.code-philosophy.hybridclr 包
+
+创建项目
+创建空的Unity项目。
+
+创建ConsoleToScreen.cs脚本
+这个脚本对于演示热更新没有直接作用。它可以打印日志到屏幕上，方便定位错误。
+
+创建主场景
+创建默认初始场景 main.scene
+场景中创建一个空GameObject，将ConsoleToScreen挂到上面
+在Build Settings中添加main场景到打包场景列表
+
+创建 HotUpdate 热更新模块
+创建 Assets/HotUpdate 目录
+在目录下 右键 Create/Assembly Definition，创建一个名为HotUpdate的程序集模块
+
+
+配置HybridCLR
+配置HybridCLR
+打开菜单 HybridCLR/Settings， 在Hot Update Assemblies配置项中添加HotUpdate程序集，如下图
+
+
+配置PlayerSettings
+如果你用的hybridclr包低于v4.0.0版本，需要关闭增量式GC(Use Incremental GC) 选项
+Scripting Backend 切换为 IL2CPP
+Api Compatability Level 切换为 .Net 4.x(Unity 2019-2020) 或 .Net Framework（Unity 2021+）
+
+创建热更新脚本
+using System.Collections;
+using UnityEngine;
+
+public class Hello
+{
+    public static void Run()
+    {
+        Debug.Log("Hello, HybridCLR");
+    }
+}
+
+加载热更新程序集
+为了简化演示，我们不通过http服务器下载HotUpdate.dll，而是直接将HotUpdate.dll放到StreamingAssets目录下。
+
+HybridCLR是原生运行时实现，因此调用Assembly Assembly.Load(byte[])即可加载热更新程序集。
+
+创建Assets/LoadDll.cs脚本，然后在main场景中创建一个GameObject对象，挂载LoadDll脚本。
+
+    void Start()
+    {
+      // Editor环境下，HotUpdate.dll.bytes已经被自动加载，不需要加载，重复加载反而会出问题。
+#if !UNITY_EDITOR
+        Assembly hotUpdateAss = Assembly.Load(File.ReadAllBytes($"{Application.streamingAssetsPath}/HotUpdate.dll.bytes"));
+#else
+      // Editor下无需加载，直接查找获得HotUpdate程序集
+        Assembly hotUpdateAss = System.AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "HotUpdate");
+#endif
+    
+        Type type = hotUpdateAss.GetType("Hello");
+        type.GetMethod("Run").Invoke(null, null);
+    }
+
+
+打包运行
+运行菜单 HybridCLR/Generate/All 进行必要的生成操作。这一步不可遗漏!!!
+将{proj}/HybridCLRData/HotUpdateDlls/StandaloneWindows64(MacOS下为StandaloneMacXxx)目录下的HotUpdate.dll复制到Assets/StreamingAssets/HotUpdate.dll.bytes，注意，要加.bytes后缀！！！
+打开Build Settings对话框，点击Build And Run，打包并且运行热更新示例工程。
+如果打包成功，并且屏幕上显示 'Hello,HybridCLR'，表示热更新代码被顺利执行！
+
+
+测试热更新
+修改Assets/HotUpdate/Hello.cs的Run函数中Debug.Log("Hello, HybridCLR");代码，改成Debug.Log("Hello, World");。
+运行菜单命令HybridCLR/CompileDll/ActiveBulidTarget重新编译热更新代码。
+将{proj}/HybridCLRData/HotUpdateDlls/StandaloneWindows64(MacOS下为StandaloneMacXxx)目录下的HotUpdate.dll复制为刚才的打包输出目录的 XXX_Data/StreamingAssets/HotUpdate.dll.bytes。
+重新运行程序，会发现屏幕中显示Hello, World，表示热更新代码生效了！
+
+
+使用AOT中定义的泛型类或函数，补充元数据技术。 这是HybridCLR的专利技术，社区版本也能使用
+
+获得补充元数据dll
+打包过程生成的裁剪后的AOT dll可以用于补充元数据。com.code-philosophy.hybridclr插件会自动把它们复制到{project}/HybridCLRData/AssembliesPostIl2CppStrip/{target}。
+
+执行补充元数据
+使用com.code-philosophy.hybridclr包中的HybridCLR.RuntimeApi.LoadMetadataForAOTAssembly函数为AOT泛型补充元数据。 元数据只需要补充一次，推荐在执行任何热更新代码前。LoadDll.cs最终变成类似如下。
+
+
+
+public class LoadDll : MonoBehaviour
+{
+
+    void Start()
+    {
+        // 先补充元数据
+        LoadMetadataForAOTAssemblies();
+      // Editor环境下，HotUpdate.dll.bytes已经被自动加载，不需要加载，重复加载反而会出问题。
+#if !UNITY_EDITOR
+        Assembly hotUpdateAss = Assembly.Load(File.ReadAllBytes($"{Application.streamingAssetsPath}/HotUpdate.dll.bytes"));
+#else
+      // Editor下无需加载，直接查找获得HotUpdate程序集
+        Assembly hotUpdateAss = System.AppDomain.CurrentDomain.GetAssemblies().First(a => a.GetName().Name == "HotUpdate");
+#endif
+    
+        Type type = hotUpdateAss.GetType("Hello");
+        type.GetMethod("Run").Invoke(null, null);
+    }
+
+    private static void LoadMetadataForAOTAssemblies()
+    {
+        List<string> aotDllList = new List<string>
+        {
+            "mscorlib.dll",
+            "System.dll",
+            "System.Core.dll", // 如果使用了Linq，需要这个
+            // "Newtonsoft.Json.dll", 
+            // "protobuf-net.dll",
+        };
+
+        foreach (var aotDllName in aotDllList)
+        {
+            byte[] dllBytes = File.ReadAllBytes($"{Application.streamingAssetsPath}/{aotDllName}.bytes");
+            int err = HybridCLR.RuntimeApi.LoadMetadataForAOTAssembly(dllBytes, HomologousImageMode.SuperSet);
+            Debug.Log($"LoadMetadataForAOTAssembly:{aotDllName}. ret:{err}");
+        }
+    }
+}    
