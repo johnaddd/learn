@@ -5,6 +5,64 @@ C# 的 async/await 其实就是一个通用的异步编程模型，编译器会�
    #GetAwaiter是否有返回值（下面简称obj）
    #obj是否继承了INotifyCompletion接口
    #obj是否有bool IsCompleted { get；}    
+
+-------------------------------------------------------------------------------------
+      public class ButtonExample
+      {
+          private readonly Button _first;
+          private readonly Button _second;
+      
+          public ButtonExample(Button first, Button second)
+          {
+              _first  = first;
+              _second = second;
+          }
+      
+          public async Task Start()
+          {
+              await _first;
+              Debug.Log("First Clicked!");
+              await _second;
+              Debug.Log("Second Clicked!");
+          }
+      }
+      
+      
+      public class AwaitableButton : INotifyCompletion
+      {
+          public bool IsCompleted => _is_completed;
+      
+          private readonly Button _btn;
+      
+          private Action _continuation;
+          private bool   _is_completed;
+      
+          public AwaitableButton(Button btn) { _btn = btn; }
+      
+          private void _OnClicked()
+          {
+              _btn.onClick.RemoveListener(_OnClicked);
+              _continuation();
+      
+              _is_completed = true;
+          }
+      
+          public void OnCompleted(Action continuation)
+          {
+              Debug.Log("AwaitableButton OnCompleted :");
+              _continuation = continuation;
+              _btn.onClick.AddListener(_OnClicked);
+          }
+      
+          public void GetResult() { }
+      }
+      
+      public static class ButtonEx
+      {
+          public static AwaitableButton GetAwaiter(this Button self) { return new AwaitableButton(self); }
+      }
+
+
 3.Fire&Forget 日常使用Async时，我们会面临两种情况，一种是这个任务需要等待，另一种并不希望被等待。需要等待直接使用await.xxx;而另一种情况 我们可以理解为Fire&Forget。在UniTask环境中，xxx.Forget()
   所有异步代码，如果不需要等待，必须手动设置Fire&Forget，否者必须Await
 4.手搓状态机
@@ -69,3 +127,4 @@ C# 的 async/await 其实就是一个通用的异步编程模型，编译器会�
    
        public void SetStateMachine(IAsyncStateMachine state_machine) { builder.SetStateMachine(state_machine); }
    }
+
