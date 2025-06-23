@@ -128,3 +128,20 @@ C# 的 async/await 其实就是一个通用的异步编程模型，编译器会�
        public void SetStateMachine(IAsyncStateMachine state_machine) { builder.SetStateMachine(state_machine); }
    }
 
+5.WhenAll用法
+   假如有1000个表，每个表刚好背打包成一个AB，相当于每个task任务都是一个IO，如果一起并发的话相当于开了1000个IO请求，这个时候我们就要用分组加载
+   List<UniTask> tasks = new();
+   foreach(ACategory category in for_load)
+   {
+      tasks.Add(category.BeginInit(_loader,settings));
+      if(tasks.Count < 50)
+      {
+         continue;
+      }
+      await UniTask.WhenAll(task.List);
+      task.Clear();
+   }
+   if (task.Count > 0)
+   {
+      await UniTask.WhenAll(task.List);
+   }
