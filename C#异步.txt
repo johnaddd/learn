@@ -1,0 +1,17 @@
+C# 的 async/await 其实就是一个通用的异步编程模型，编译器会对 async 方法采用 CPS 变换，以 await 为分界线将方法进行拆分，然后使用一个状态机来驱动执行。
+1.尽可能不要在项目中使用 async void 因为他会被UnitySynchronizationContext 异常抛出 也可能不抛出
+2.C#在检查一个对象是否可以Await时有如下几个必要条件
+   #是否有GetAwaiter方法（静态扩展也可以）
+   #GetAwaiter是否有返回值（下面简称obj）
+   #obj是否继承了INotifyCompletion接口
+   #obj是否有bool IsCompleted { get；}    
+3.Fire&Forget 日常使用Async时，我们会面临两种情况，一种是这个任务需要等待，另一种并不希望被等待。需要等待直接使用await.xxx;而另一种情况 我们可以理解为Fire&Forget。在UniTask环境中，xxx.Forget()
+  所有异步代码，如果不需要等待，必须手动设置Fire&Forget，否者必须Await
+4.手搓状态机
+    // _Custom 函数与此函数完全相同
+    private async Task<int> _Example()
+    {
+        await Task.Delay(1000);
+
+        return 1;
+    }
